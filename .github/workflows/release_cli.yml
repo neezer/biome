@@ -72,6 +72,9 @@ jobs:
           - os: macos-14
             target: aarch64-apple-darwin
             code-target: darwin-arm64
+          - os: ubuntu-20.04
+            target: x86_64-unknown-openbsd
+            code-target: openbsd-x64
 
     name: Package ${{ matrix.code-target }}
     runs-on: ${{ matrix.os }}
@@ -89,11 +92,13 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Install Node.js
+        if: matrix.code-target != 'openbsd-x64'
         uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
         with:
           node-version: 20
 
       - name: Install Rust toolchain
+        if: matrix.code-target != 'openbsd-x64'
         run: rustup target add ${{ matrix.target }}
 
       - name: Install arm64 toolchain
@@ -119,6 +124,7 @@ jobs:
 
       # Build the CLI binary
       - name: Build binaries
+        if: matrix.code-target != 'openbsd-x64'
         run: cargo build -p biome_cli --release --target ${{ matrix.target }}
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
@@ -127,6 +133,21 @@ jobs:
           RUSTFLAGS: "-C strip=symbols"
           # Inline the version of the npm package in the CLI binary
           BIOME_VERSION: ${{ env.version }}
+      - name: Build binaries
+        if: matrix.code-target == 'openbsd-x64'
+        uses: vmactions/openbsd-vm@eaa3d3f695a5a52971c23958f6dd4cd3397f959d # v1.0.8
+        env:
+          # Strip all debug symbols from the resulting binaries
+          RUSTFLAGS: "-C strip=symbols"
+          # Inline the version of the npm package in the CLI binary
+          BIOME_VERSION: ${{ env.version }}
+        with:
+          envs: 'RUSTFLAGS BIOME_VERSION'
+          release: '7.5'
+          prepare: |
+            pkg_add node-18.19.1v0 rust-1.76.0p0
+          run: |
+            cargo build -p biome_cli --release --target ${{ matrix.target }}
 
       # Copy the CLI binary and rename it to include the name of the target platform
       - name: Copy CLI binary
