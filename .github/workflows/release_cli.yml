@@ -80,7 +80,7 @@ jobs:
             version: '7.5'
             code-target: openbsd-x64
             pre-build: |
-              pkg_add node-18.19.1v0 rust-1.76.0p0
+              sudo pkg_add node-18.19.1v0 rust-1.76.0p0
 
     name: Package ${{ matrix.code-target }}
     runs-on: ${{ matrix.os }}
