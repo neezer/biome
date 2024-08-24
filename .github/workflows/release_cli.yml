@@ -81,7 +81,7 @@ jobs:
             code-target: openbsd-x64
             # 2024-07-12 == rustc 1.80
             pre-build: |
-              sudo pkg_add node-18.19.1v0 rust-1.76.0p0
+              sudo pkg_add git node-18.19.1v0 rust-1.76.0p0
               git clone https://github.com/semarie/build-rust
               echo "SUDO=sudo" >> ~/.build_rust.conf
               echo 'distfiles_rustc_base="https://static.rust-lang.org/dist/2024-07-12"' >> ~/.build_rust.conf
